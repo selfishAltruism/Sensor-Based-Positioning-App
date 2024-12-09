@@ -11,7 +11,6 @@ import {
 } from "react-native-sensors";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import RNFS from "react-native-fs";
 
 const INTERVER = 200;
 const bleManager = new BleManager();
@@ -19,7 +18,6 @@ const bleManager = new BleManager();
 const Scan = () => {
   const [isScanning, setIsScanning] = useState(false); // 스캔 중 상태
   const [scanInterval, setScanInterval] = useState(null); // 스캔 간격 관리
-  const [error, setError] = useState(false);
 
   const magSubscription = useRef(null);
   const gyroSubscription = useRef(null);
@@ -41,15 +39,7 @@ const Scan = () => {
   };
 
   const startScanning = () => {
-    setError(false);
-
     bleManager.startDeviceScan([], null, (error, device) => {
-      if (error) {
-        console.log("블루투스 검색 중 오류 발생: ", error);
-        setError(true);
-        return;
-      }
-
       if (device && !devices.current.some((d) => d.id === device.id)) {
         devices.current.push({
           id: device.id,
@@ -69,7 +59,6 @@ const Scan = () => {
 
   const stopScanning = () => {
     console.log("[종료]");
-
     clearInterval(scanInterval);
     bleManager.stopDeviceScan();
     setIsScanning(false);
@@ -77,24 +66,6 @@ const Scan = () => {
     if (gyroSubscription.current) gyroSubscription.current.unsubscribe();
     if (magSubscription.current) magSubscription.current.unsubscribe();
     if (accelSubscription.current) accelSubscription.current.unsubscribe(); // 가속도계 구독 해제
-  };
-
-  const saveDataToFile = async () => {
-    try {
-      const keys = await AsyncStorage.getAllKeys();
-      const data = await AsyncStorage.multiGet(keys);
-
-      // JSON으로 데이터를 파일로 저장
-      const fileContent = data.map(([key, value]) => ({ key, value }));
-      const path = `${
-        RNFS.DownloadDirectoryPath
-      }/scanned_data-${Date.now()}.json`;
-
-      await RNFS.writeFile(path, JSON.stringify(fileContent, null, 2), "utf8");
-      console.log(`데이터가 저장되었습니다: ${path}`);
-    } catch (error) {
-      console.error("데이터 저장 중 오류:", error);
-    }
   };
 
   useEffect(() => {
@@ -150,56 +121,34 @@ const Scan = () => {
 
   const styles = StyleSheet.create({
     button: {
-      marginTop: 20,
-      alignSelf: "center",
+      position: "absolute",
+      top: 20,
+      right: 20,
       padding: 10,
-      backgroundColor: isScanning ? "red" : "blue",
+      backgroundColor: isScanning ? "#920007" : "#0f0092",
       borderRadius: 5,
-      width: 150,
-      marginTop: 10,
     },
     buttonText: {
       color: "white",
       fontWeight: "bold",
-      alignSelf: "center",
-    },
-    saveButton: {
-      marginTop: 20,
-      alignSelf: "center",
-      padding: 10,
-      backgroundColor: "green",
-      borderRadius: 5,
-      width: 150,
-      marginTop: 10,
     },
   });
 
+  const scanHandler = () => {
+    if (isScanning) {
+      stopScanning();
+    } else {
+      startScanning();
+    }
+  };
+
   return (
     <>
-      {error ? (
-        <Text style={styles.error}>
-          블루투스 에러가 발생하여, 재가동 되었습니다.
+      <TouchableOpacity style={styles.button} onPress={scanHandler}>
+        <Text style={styles.buttonText}>
+          {isScanning ? "SCAN OFF" : "SCAN ON"}
         </Text>
-      ) : null}
-      <View>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            if (isScanning) {
-              stopScanning();
-            } else {
-              startScanning();
-            }
-          }}
-        >
-          <Text style={styles.buttonText}>
-            {isScanning ? "SCAN STOP" : "SCAN ON"}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.saveButton} onPress={saveDataToFile}>
-          <Text style={styles.buttonText}>DATA SAVE</Text>
-        </TouchableOpacity>
-      </View>
+      </TouchableOpacity>
     </>
   );
 };
