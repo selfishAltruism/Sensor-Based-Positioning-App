@@ -13,8 +13,8 @@ import {
 const App = () => {
   const [position, setPosition] = useState({
     x: 150, // 원 중심 X 좌표
-    y: 300, // 원 중심 Y 좌표
-    outgoingAngle: 190, // 나가는 방향 각도 (0도)
+    y: 400, // 원 중심 Y 좌표
+    outgoingAngle: 200, // 나가는 방향 각도 (0도)
     incomingAngle: 100, // 들어오는 방향 각도 (90도)
   });
 
@@ -54,7 +54,7 @@ const App = () => {
     ).start();
   }, [scale]);
 
-  const calculateArrowPosition = (angle) => {
+  const calculateArrowPosition = (angle, radius) => {
     // 각도를 라디안으로 변환
     const radian = (angle * Math.PI) / 180;
     // X, Y 위치 계산
@@ -63,8 +63,8 @@ const App = () => {
     return { arrowX, arrowY };
   };
 
-  const outgoingPosition = calculateArrowPosition(position.outgoingAngle);
-  const incomingPosition = calculateArrowPosition(position.incomingAngle);
+  const outgoingPosition = calculateArrowPosition(position.outgoingAngle, 20);
+  const incomingPosition = calculateArrowPosition(position.incomingAngle, 35);
 
   return (
     <>
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   point: {
     width: 24,
     height: 24,
-    backgroundColor: "#ffa600ce",
+    backgroundColor: "#d40000ce",
     borderRadius: 25,
     position: "absolute",
   },
