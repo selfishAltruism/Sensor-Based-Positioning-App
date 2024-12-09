@@ -14,13 +14,13 @@ const App = () => {
   const [position, setPosition] = useState({
     x: 150, // 원 중심 X 좌표
     y: 300, // 원 중심 Y 좌표
-    outgoingAngle: 0, // 나가는 방향 각도 (0도)
-    incomingAngle: 90, // 들어오는 방향 각도 (90도)
+    outgoingAngle: 190, // 나가는 방향 각도 (0도)
+    incomingAngle: 100, // 들어오는 방향 각도 (90도)
   });
 
   const scale = useRef(new Animated.Value(1)).current; // 초기 크기 1
 
-  const radius = 50; // 원 중심에서 화살표까지의 거리
+  const radius = 34; // 원 중심에서 화살표까지의 거리
 
   const panResponder = useRef(
     PanResponder.create({
@@ -77,8 +77,8 @@ const App = () => {
           style={[
             styles.point,
             {
-              left: position.x - 25,
-              top: position.y - 25,
+              left: position.x - 12,
+              top: position.y - 12,
               transform: [{ scale }], // 애니메이션으로 크기 조정
             },
           ]}
@@ -89,11 +89,14 @@ const App = () => {
         <Image
           source={require("./assets/images/arrow.png")}
           style={[
-            styles.arrow,
+            styles.arrowOut,
             {
               left: outgoingPosition.arrowX - 15, // 화살표 중심 맞춤
               top: outgoingPosition.arrowY - 15, // 화살표 중심 맞춤
-              transform: [{ rotate: `${position.outgoingAngle}deg` }], // 각도 회전
+              transform: [
+                { scaleX: -1 },
+                { rotate: `${position.outgoingAngle}deg` },
+              ], // 각도 회전
             },
           ]}
         />
@@ -102,11 +105,11 @@ const App = () => {
         <Image
           source={require("./assets/images/arrow.png")}
           style={[
-            styles.arrow,
+            styles.arrowIn,
             {
               left: incomingPosition.arrowX - 15, // 화살표 중심 맞춤
               top: incomingPosition.arrowY - 15, // 화살표 중심 맞춤
-              transform: [{ rotate: `${position.incomingAngle}deg` }], // 각도 회전
+              transform: [{ rotate: `${-position.incomingAngle}deg` }], // 각도 회전
             },
           ]}
         />
@@ -138,13 +141,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   point: {
-    width: 25,
-    height: 25,
+    width: 24,
+    height: 24,
     backgroundColor: "#ffa600ce",
     borderRadius: 25,
     position: "absolute",
   },
-  arrow: {
+  arrowIn: {
+    width: 30,
+    height: 30,
+    position: "absolute",
+  },
+  arrowOut: {
     width: 30,
     height: 30,
     position: "absolute",
