@@ -10,6 +10,7 @@ import {
 } from "react-native";
 
 import Scan from "./src/widgets/Scan";
+import requestBluetoothPermission from "./src/permissions/requestBluetoothPermission";
 
 const App = () => {
   const [position, setPosition] = useState({
@@ -20,6 +21,10 @@ const App = () => {
   });
 
   const scale = useRef(new Animated.Value(1)).current; // 초기 크기 1
+
+  useEffect(() => {
+    requestBluetoothPermission();
+  }, []);
 
   const panResponder = useRef(
     PanResponder.create({

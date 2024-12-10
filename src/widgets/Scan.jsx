@@ -38,7 +38,7 @@ const Scan = () => {
 
   const startScanning = () => {
     bleManager.startDeviceScan([], null, (error, device) => {
-      console.log(device);
+      if (error) console.log(error);
       if (device && !devices.current.some((d) => d.id === device.id)) {
         devices.current.push({
           id: device.id,
