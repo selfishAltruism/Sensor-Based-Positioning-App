@@ -10,12 +10,13 @@ import {
   SensorTypes,
 } from "react-native-sensors";
 
-import { postData } from "../service/main";
+import { postData } from "../services/main";
+import { points } from "../utils/points";
 
 const INTERVER = 1000;
 const bleManager = new BleManager();
 
-const Scan = () => {
+const Scan = ({ setPosition }) => {
   const [isScanning, setIsScanning] = useState(false); // 스캔 중 상태
   const [scanInterval, setScanInterval] = useState(null); // 스캔 간격 관리
 
@@ -24,7 +25,7 @@ const Scan = () => {
   const accelSubscription = useRef(null);
 
   // 스캔 데이터 종합
-  const [bluetouthData, setBluetouthData] = useState(false);
+  const [bluetoothData, setBluetoothData] = useState(false);
   const [magData, setMagData] = useState(false);
   const [gyroData, setGyroData] = useState(false);
   const [accelhData, setAccelData] = useState(false);
@@ -32,8 +33,8 @@ const Scan = () => {
   const devices = useRef([]);
 
   // Bluetooth 장치 검색 함수
-  const scanBluetouth = () => {
-    setBluetouthData(devices.current);
+  const scanBluetooth = () => {
+    setBluetoothData(devices.current);
     devices.current = [];
     console.log("블루투스 측정 완료");
   };
@@ -51,7 +52,7 @@ const Scan = () => {
     });
 
     const interval = setInterval(async () => {
-      scanBluetouth();
+      scanBluetooth();
     }, INTERVER);
 
     setScanInterval(interval);
@@ -118,15 +119,31 @@ const Scan = () => {
   }, [isScanning]);
 
   useEffect(() => {
-    if (bluetouthData && gyroData && magData && accelhData) {
+    if (bluetoothData && gyroData && magData && accelhData) {
       console.log("데이터 전송 시작");
 
-      setAccelData(false);
-      setBluetouthData(false);
-      setGyroData(false);
-      setMagData(false);
+      postData({
+        bluetooth: bluetoothData,
+        gyro: gyroData,
+        mag: magData,
+        accel: accelhData,
+      }).then((res) => {
+        if (res.point) {
+          setPosition({
+            x: points[res.point][0],
+            y: points[res.point][1],
+            outgoingAngle: res.outgoingAngle,
+            incomingAngle: res.incomingAngle,
+          });
+        }
+        setAccelData(false);
+        setBluetoothData(false);
+        setGyroData(false);
+        setMagData(false);
+        console.log("데이터 전송 완료");
+      });
     }
-  }, [bluetouthData, gyroData, magData, accelhData]);
+  }, [bluetoothData, gyroData, magData, accelhData]);
 
   const styles = StyleSheet.create({
     button: {

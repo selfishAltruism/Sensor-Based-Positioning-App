@@ -26,7 +26,7 @@ const App = () => {
     requestBluetoothPermission();
   }, []);
 
-  const panResponder = useRef(
+  /* const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: (event, gestureState) => {
@@ -38,7 +38,7 @@ const App = () => {
         }));
       },
     })
-  ).current;
+  ).current; */
 
   useEffect(() => {
     // 확대 및 축소 애니메이션 반복
@@ -86,7 +86,7 @@ const App = () => {
               transform: [{ scale }], // 애니메이션으로 크기 조정
             },
           ]}
-          {...panResponder.panHandlers}
+          /*  {...panResponder.panHandlers} */
         />
 
         {/* 나가는 방향 화살표 */}
