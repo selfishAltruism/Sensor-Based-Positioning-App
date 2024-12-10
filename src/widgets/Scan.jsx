@@ -10,6 +10,8 @@ import {
   SensorTypes,
 } from "react-native-sensors";
 
+import { postData } from "../service/main";
+
 const INTERVER = 1000;
 const bleManager = new BleManager();
 
@@ -117,7 +119,8 @@ const Scan = () => {
 
   useEffect(() => {
     if (bluetouthData && gyroData && magData && accelhData) {
-      console.log(bluetouthData, gyroData, magData, accelhData);
+      console.log("데이터 전송 시작");
+
       setAccelData(false);
       setBluetouthData(false);
       setGyroData(false);
