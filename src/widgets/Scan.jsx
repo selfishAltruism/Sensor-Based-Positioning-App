@@ -10,9 +10,7 @@ import {
   SensorTypes,
 } from "react-native-sensors";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const INTERVER = 200;
+const INTERVER = 1000;
 const bleManager = new BleManager();
 
 const Scan = () => {
@@ -21,25 +19,26 @@ const Scan = () => {
 
   const magSubscription = useRef(null);
   const gyroSubscription = useRef(null);
-  const accelSubscription = useRef(null); // 가속도계 구독 추가
+  const accelSubscription = useRef(null);
+
+  // 스캔 데이터 종합
+  const [bluetouthData, setBluetouthData] = useState(false);
+  const [magData, setMagData] = useState(false);
+  const [gyroData, setGyroData] = useState(false);
+  const [accelhData, setAccelData] = useState(false);
 
   const devices = useRef([]);
 
   // Bluetooth 장치 검색 함수
-  const scanBluetoouth = () => {
-    AsyncStorage.setItem(
-      Date.now() + "-bluetooth",
-      JSON.stringify(devices.current)
-    ).then(() => {
-      console.log("블루투스 스캔 완료");
-    });
-
-    //console.log(devices.current);
+  const scanBluetouth = () => {
+    setBluetouthData(devices.current);
     devices.current = [];
+    console.log("블루투스 측정 완료");
   };
 
   const startScanning = () => {
     bleManager.startDeviceScan([], null, (error, device) => {
+      console.log(device);
       if (device && !devices.current.some((d) => d.id === device.id)) {
         devices.current.push({
           id: device.id,
@@ -50,7 +49,7 @@ const Scan = () => {
     });
 
     const interval = setInterval(async () => {
-      scanBluetoouth();
+      scanBluetouth();
     }, INTERVER);
 
     setScanInterval(interval);
@@ -65,7 +64,7 @@ const Scan = () => {
 
     if (gyroSubscription.current) gyroSubscription.current.unsubscribe();
     if (magSubscription.current) magSubscription.current.unsubscribe();
-    if (accelSubscription.current) accelSubscription.current.unsubscribe(); // 가속도계 구독 해제
+    if (accelSubscription.current) accelSubscription.current.unsubscribe();
   };
 
   useEffect(() => {
@@ -74,7 +73,7 @@ const Scan = () => {
       setUpdateIntervalForType(SensorTypes.magnetometer, INTERVER);
       magSubscription.current = magnetometer.subscribe(
         (data) => {
-          AsyncStorage.setItem(Date.now() + "-magnet", JSON.stringify(data));
+          setMagData(data);
           console.log("마그네토미터 측정 완료");
         },
         (error) => console.error("마그네토미터 오류: ", error)
@@ -90,7 +89,7 @@ const Scan = () => {
       setUpdateIntervalForType(SensorTypes.gyroscope, INTERVER);
       gyroSubscription.current = gyroscope.subscribe(
         (data) => {
-          AsyncStorage.setItem(Date.now() + "-gyroscope", JSON.stringify(data));
+          setGyroData(data);
           console.log("자이로 측정 완료");
         },
         (error) => console.error("자이로 오류: ", error)
@@ -106,10 +105,7 @@ const Scan = () => {
       setUpdateIntervalForType(SensorTypes.accelerometer, INTERVER);
       accelSubscription.current = accelerometer.subscribe(
         (data) => {
-          AsyncStorage.setItem(
-            Date.now() + "-accelerometer",
-            JSON.stringify(data)
-          );
+          setAccelData(data);
           console.log("가속도계 측정 완료");
         },
         (error) => console.error("가속도계 오류: ", error)
@@ -118,6 +114,16 @@ const Scan = () => {
       if (accelSubscription.current) accelSubscription.current.unsubscribe(); // 구독 해제
     }
   }, [isScanning]);
+
+  useEffect(() => {
+    if (bluetouthData && gyroData && magData && accelhData) {
+      console.log(bluetouthData, gyroData, magData, accelhData);
+      setAccelData(false);
+      setBluetouthData(false);
+      setGyroData(false);
+      setMagData(false);
+    }
+  }, [bluetouthData, gyroData, magData, accelhData]);
 
   const styles = StyleSheet.create({
     button: {

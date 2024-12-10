@@ -2,13 +2,14 @@ import React, { useRef, useState, useEffect } from "react";
 import {
   Text,
   StyleSheet,
-  View,
   TouchableOpacity,
   ImageBackground,
   PanResponder,
   Animated,
   Image,
 } from "react-native";
+
+import Scan from "./src/widgets/Scan";
 
 const App = () => {
   const [position, setPosition] = useState({
@@ -19,8 +20,6 @@ const App = () => {
   });
 
   const scale = useRef(new Animated.Value(1)).current; // 초기 크기 1
-
-  const radius = 34; // 원 중심에서 화살표까지의 거리
 
   const panResponder = useRef(
     PanResponder.create({
@@ -115,9 +114,7 @@ const App = () => {
         />
       </ImageBackground>
 
-      <TouchableOpacity style={styles.button} onPress={() => {}}>
-        <Text style={styles.buttonText}>SCAN</Text>
-      </TouchableOpacity>
+      <Scan />
     </>
   );
 };
@@ -127,18 +124,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  button: {
-    position: "absolute",
-    top: 20,
-    right: 20,
-    padding: 10,
-    backgroundColor: "#0f0092",
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
   },
   point: {
     width: 24,
