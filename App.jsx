@@ -1,24 +1,13 @@
 import React, { useRef, useState, useEffect } from "react";
-import {
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ImageBackground,
-  PanResponder,
-  Animated,
-  Image,
-} from "react-native";
+import { StyleSheet, ImageBackground, Animated } from "react-native";
 
 import Scan from "./src/widgets/Scan";
 import requestBluetoothPermission from "./src/permissions/requestBluetoothPermission";
-import { points } from "./src/utils/points";
 
 const App = () => {
   const [position, setPosition] = useState({
-    x: points["A"][0], // 원 중심 X 좌표
-    y: points["A"][1], // 원 중심 Y 좌표
-    outgoingAngle: 200, // 나가는 방향 각도 (0도)
-    incommingAngle: 100, // 들어오는 방향 각도 (90도)
+    x: 340, // 원 중심 X 좌표
+    y: 750, // 원 중심 Y 좌표
   });
 
   const scale = useRef(new Animated.Value(1)).current; // 초기 크기 1
@@ -46,12 +35,12 @@ const App = () => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(scale, {
-          toValue: 0.8, // 확대 비율
+          toValue: 0.8,
           duration: 500, // 애니메이션 시간 (밀리초)
           useNativeDriver: true,
         }),
         Animated.timing(scale, {
-          toValue: 1, // 축소 비율
+          toValue: 1.2,
           duration: 500, // 애니메이션 시간 (밀리초)
           useNativeDriver: true,
         }),
@@ -59,25 +48,12 @@ const App = () => {
     ).start();
   }, [scale]);
 
-  const calculateArrowPosition = (angle, radius) => {
-    // 각도를 라디안으로 변환
-    const radian = (angle * Math.PI) / 180;
-    // X, Y 위치 계산
-    const arrowX = position.x + radius * Math.cos(radian);
-    const arrowY = position.y - radius * Math.sin(radian); // Y축은 반대로 이동
-    return { arrowX, arrowY };
-  };
-
-  const outgoingPosition = calculateArrowPosition(position.outgoingAngle, 13);
-  const incomingPosition = calculateArrowPosition(position.incommingAngle, 29);
-
   return (
     <>
       <ImageBackground
         source={require("./assets/images/map.png")}
         style={styles.container}
       >
-        {/* 중심 점 */}
         <Animated.View
           style={[
             styles.point,
@@ -85,36 +61,6 @@ const App = () => {
               left: position.x - 12,
               top: position.y - 12,
               transform: [{ scale }], // 애니메이션으로 크기 조정
-            },
-          ]}
-          /*  {...panResponder.panHandlers} */
-        />
-
-        {/* 나가는 방향 화살표 */}
-        <Image
-          source={require("./assets/images/arrow.png")}
-          style={[
-            styles.arrowOut,
-            {
-              left: outgoingPosition.arrowX - 15, // 화살표 중심 맞춤
-              top: outgoingPosition.arrowY - 15, // 화살표 중심 맞춤
-              transform: [
-                { scaleX: -1 },
-                { rotate: `${position.outgoingAngle}deg` },
-              ], // 각도 회전
-            },
-          ]}
-        />
-
-        {/* 들어오는 방향 화살표 */}
-        <Image
-          source={require("./assets/images/arrow.png")}
-          style={[
-            styles.arrowIn,
-            {
-              left: incomingPosition.arrowX - 15, // 화살표 중심 맞춤
-              top: incomingPosition.arrowY - 15, // 화살표 중심 맞춤
-              transform: [{ rotate: `${-position.incommingAngle}deg` }], // 각도 회전
             },
           ]}
         />

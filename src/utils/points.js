@@ -22,3 +22,15 @@ export const points = {
   B: [243, 758],
   A: [340, 750],
 };
+
+export const resizingX = (x) => {
+  const data = Number(x);
+
+  return data;
+};
+
+export const resizingY = (y) => {
+  const data = Number(y);
+
+  return data;
+};

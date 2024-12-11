@@ -2,49 +2,51 @@ import React, { useState, useEffect, useRef } from "react";
 import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
 
 import { BleManager } from "react-native-ble-plx";
-import {
-  magnetometer,
-  setUpdateIntervalForType,
-  gyroscope,
-  accelerometer, // 가속도계 추가
-  SensorTypes,
-} from "react-native-sensors";
 
-import { postData } from "../services/main";
-import { points } from "../utils/points";
+import { postData, checkState } from "../services/main";
+import { resizingX, resizingY } from "../utils/points";
 
 const INTERVER = 1000;
 const bleManager = new BleManager();
 
 const Scan = ({ setPosition }) => {
-  const [isScanning, setIsScanning] = useState(false); // 스캔 중 상태
-  const [scanInterval, setScanInterval] = useState(null); // 스캔 간격 관리
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanInterval, setScanInterval] = useState(null);
 
-  const magSubscription = useRef(null);
-  const gyroSubscription = useRef(null);
-  const accelSubscription = useRef(null);
-
-  // 스캔 데이터 종합
-  const [bluetoothData, setBluetoothData] = useState(false);
-  const [magData, setMagData] = useState(false);
-  const [gyroData, setGyroData] = useState(false);
-  const [accelhData, setAccelData] = useState(false);
-
-  const [isCatch, setCatch] = useState(false);
+  const [label, setLabel] = useState(false);
 
   const devices = useRef([]);
 
   // Bluetooth 장치 검색 함수
-  const scanBluetooth = () => {
-    setBluetoothData({
+  const initializeData = async () => {
+    const res = await postData({
       key: Date.now() + "-bluetooth",
       value: devices.current,
     });
+
+    setPosition({
+      x: resizingX(res.x), // 원 중심 X 좌표
+      y: resizingY(res.y), // 원 중심 Y 좌표
+    });
+
+    setLabel(res.label);
+
     devices.current = [];
-    console.log("블루투스 측정 완료");
+    console.log("[블루투스 값 전송 완료]");
+  };
+
+  const stopScanning = () => {
+    initializeData();
+
+    console.log("[스캔 종료]");
+    bleManager.stopDeviceScan();
+
+    //다시 시작
+    startChecking();
   };
 
   const startScanning = () => {
+    console.log("[스캔 시작]");
     bleManager.startDeviceScan([], null, (error, device) => {
       if (error) console.log(error);
       if (device && !devices.current.some((d) => d.id === device.id)) {
@@ -56,103 +58,44 @@ const Scan = ({ setPosition }) => {
       }
     });
 
+    setTimeout(() => {
+      stopScanning();
+    }, 5000);
+  };
+
+  const startChecking = () => {
     const interval = setInterval(async () => {
-      scanBluetooth();
+      const res = await checkState();
+
+      setPosition({
+        x: resizingX(res.x), // 원 중심 X 좌표
+        y: resizingY(res.y), // 원 중심 Y 좌표
+      });
+
+      setLabel(res.label);
+
+      if (res.label === "" && stop) {
+        clearInterval(scanInterval);
+        startScanning();
+      }
     }, INTERVER);
 
     setScanInterval(interval);
     setIsScanning(true);
   };
 
-  const stopScanning = () => {
-    console.log("[종료]");
+  const stopChecking = () => {
     clearInterval(scanInterval);
-    bleManager.stopDeviceScan();
     setIsScanning(false);
-
-    if (gyroSubscription.current) gyroSubscription.current.unsubscribe();
-    if (magSubscription.current) magSubscription.current.unsubscribe();
-    if (accelSubscription.current) accelSubscription.current.unsubscribe();
   };
 
-  useEffect(() => {
+  const checkingHandler = () => {
     if (isScanning) {
-      if (magSubscription.current) magSubscription.current.unsubscribe();
-      setUpdateIntervalForType(SensorTypes.magnetometer, INTERVER);
-      magSubscription.current = magnetometer.subscribe(
-        (data) => {
-          setMagData({ key: Date.now() + "-magnet", value: data });
-          console.log("마그네토미터 측정 완료");
-        },
-        (error) => console.error("마그네토미터 오류: ", error)
-      );
+      startChecking();
     } else {
-      if (magSubscription.current) magSubscription.current.unsubscribe();
+      stopChecking();
     }
-  }, [isScanning]);
-
-  useEffect(() => {
-    if (isScanning) {
-      if (gyroSubscription.current) gyroSubscription.current.unsubscribe();
-      setUpdateIntervalForType(SensorTypes.gyroscope, INTERVER);
-      gyroSubscription.current = gyroscope.subscribe(
-        (data) => {
-          setGyroData({ key: Date.now() + "-gyroscope", value: data });
-          console.log("자이로 측정 완료");
-        },
-        (error) => console.error("자이로 오류: ", error)
-      );
-    } else {
-      if (gyroSubscription.current) gyroSubscription.current.unsubscribe();
-    }
-  }, [isScanning]);
-
-  useEffect(() => {
-    if (isScanning) {
-      if (accelSubscription.current) accelSubscription.current.unsubscribe(); // 기존 구독 해제
-      setUpdateIntervalForType(SensorTypes.accelerometer, INTERVER);
-      accelSubscription.current = accelerometer.subscribe(
-        (data) => {
-          setAccelData({ key: Date.now() + "-accelerometer", value: data });
-          console.log("가속도계 측정 완료");
-        },
-        (error) => console.error("가속도계 오류: ", error)
-      );
-    } else {
-      if (accelSubscription.current) accelSubscription.current.unsubscribe(); // 구독 해제
-    }
-  }, [isScanning]);
-
-  useEffect(() => {
-    if (bluetoothData && gyroData && magData && accelhData) {
-      console.log("데이터 전송 시작");
-
-      postData({
-        bluetooth: bluetoothData,
-        gyro: gyroData,
-        mag: magData,
-        accel: accelhData,
-      }).then((res) => {
-        console.log("res", res);
-        if (res.value !== "Label_not_found") {
-          setCatch(true);
-          setPosition({
-            x: points[res.value][0],
-            y: points[res.value][1],
-            outgoingAngle: Number(res.outgoingAngle),
-            incommingAngle: Number(res.incommingAngle),
-          });
-        } else {
-          setCatch(false);
-        }
-        setAccelData(false);
-        setBluetoothData(false);
-        setGyroData(false);
-        setMagData(false);
-        console.log("데이터 전송 완료");
-      });
-    }
-  }, [bluetoothData, gyroData, magData, accelhData]);
+  };
 
   const styles = StyleSheet.create({
     button: {
@@ -171,24 +114,15 @@ const Scan = ({ setPosition }) => {
       position: "absolute",
       top: 20,
       left: 20,
+      fontSize: 20,
       fontWeight: "bold",
     },
   });
 
-  const scanHandler = () => {
-    if (isScanning) {
-      stopScanning();
-    } else {
-      startScanning();
-    }
-  };
-
   return (
     <>
-      <Text style={styles.text}>
-        {isCatch ? "측정 완료" : "측정 진행 중.."}
-      </Text>
-      <TouchableOpacity style={styles.button} onPress={scanHandler}>
+      <Text style={styles.text}>{label}</Text>
+      <TouchableOpacity style={styles.button} onPress={checkingHandler}>
         <Text style={styles.buttonText}>
           {isScanning ? "SCAN OFF" : "SCAN ON"}
         </Text>
