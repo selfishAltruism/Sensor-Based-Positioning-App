@@ -11,11 +11,12 @@ import {
 
 import Scan from "./src/widgets/Scan";
 import requestBluetoothPermission from "./src/permissions/requestBluetoothPermission";
+import { points } from "./src/utils/points";
 
 const App = () => {
   const [position, setPosition] = useState({
-    x: 150, // 원 중심 X 좌표
-    y: 400, // 원 중심 Y 좌표
+    x: points["A"][0], // 원 중심 X 좌표
+    y: points["A"][1], // 원 중심 Y 좌표
     outgoingAngle: 200, // 나가는 방향 각도 (0도)
     incomingAngle: 100, // 들어오는 방향 각도 (90도)
   });
@@ -45,7 +46,7 @@ const App = () => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(scale, {
-          toValue: 1.4, // 확대 비율
+          toValue: 0.8, // 확대 비율
           duration: 500, // 애니메이션 시간 (밀리초)
           useNativeDriver: true,
         }),
@@ -67,8 +68,8 @@ const App = () => {
     return { arrowX, arrowY };
   };
 
-  const outgoingPosition = calculateArrowPosition(position.outgoingAngle, 20);
-  const incomingPosition = calculateArrowPosition(position.incomingAngle, 35);
+  const outgoingPosition = calculateArrowPosition(position.outgoingAngle, 13);
+  const incomingPosition = calculateArrowPosition(position.incomingAngle, 29);
 
   return (
     <>
