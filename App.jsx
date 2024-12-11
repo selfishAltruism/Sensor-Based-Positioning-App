@@ -18,7 +18,7 @@ const App = () => {
     x: points["A"][0], // 원 중심 X 좌표
     y: points["A"][1], // 원 중심 Y 좌표
     outgoingAngle: 200, // 나가는 방향 각도 (0도)
-    incomingAngle: 100, // 들어오는 방향 각도 (90도)
+    incommingAngle: 100, // 들어오는 방향 각도 (90도)
   });
 
   const scale = useRef(new Animated.Value(1)).current; // 초기 크기 1
@@ -69,7 +69,7 @@ const App = () => {
   };
 
   const outgoingPosition = calculateArrowPosition(position.outgoingAngle, 13);
-  const incomingPosition = calculateArrowPosition(position.incomingAngle, 29);
+  const incomingPosition = calculateArrowPosition(position.incommingAngle, 29);
 
   return (
     <>
@@ -114,13 +114,13 @@ const App = () => {
             {
               left: incomingPosition.arrowX - 15, // 화살표 중심 맞춤
               top: incomingPosition.arrowY - 15, // 화살표 중심 맞춤
-              transform: [{ rotate: `${-position.incomingAngle}deg` }], // 각도 회전
+              transform: [{ rotate: `${-position.incommingAngle}deg` }], // 각도 회전
             },
           ]}
         />
       </ImageBackground>
 
-      <Scan />
+      <Scan setPosition={(point) => setPosition(point)} />
     </>
   );
 };

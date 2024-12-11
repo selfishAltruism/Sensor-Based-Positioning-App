@@ -30,11 +30,16 @@ const Scan = ({ setPosition }) => {
   const [gyroData, setGyroData] = useState(false);
   const [accelhData, setAccelData] = useState(false);
 
+  const [isCatch, setCatch] = useState(false);
+
   const devices = useRef([]);
 
   // Bluetooth 장치 검색 함수
   const scanBluetooth = () => {
-    setBluetoothData(devices.current);
+    setBluetoothData({
+      key: Date.now() + "-bluetooth",
+      value: devices.current,
+    });
     devices.current = [];
     console.log("블루투스 측정 완료");
   };
@@ -76,7 +81,7 @@ const Scan = ({ setPosition }) => {
       setUpdateIntervalForType(SensorTypes.magnetometer, INTERVER);
       magSubscription.current = magnetometer.subscribe(
         (data) => {
-          setMagData(data);
+          setMagData({ key: Date.now() + "-magnet", value: data });
           console.log("마그네토미터 측정 완료");
         },
         (error) => console.error("마그네토미터 오류: ", error)
@@ -92,7 +97,7 @@ const Scan = ({ setPosition }) => {
       setUpdateIntervalForType(SensorTypes.gyroscope, INTERVER);
       gyroSubscription.current = gyroscope.subscribe(
         (data) => {
-          setGyroData(data);
+          setGyroData({ key: Date.now() + "-gyroscope", value: data });
           console.log("자이로 측정 완료");
         },
         (error) => console.error("자이로 오류: ", error)
@@ -108,7 +113,7 @@ const Scan = ({ setPosition }) => {
       setUpdateIntervalForType(SensorTypes.accelerometer, INTERVER);
       accelSubscription.current = accelerometer.subscribe(
         (data) => {
-          setAccelData(data);
+          setAccelData({ key: Date.now() + "-accelerometer", value: data });
           console.log("가속도계 측정 완료");
         },
         (error) => console.error("가속도계 오류: ", error)
@@ -128,13 +133,17 @@ const Scan = ({ setPosition }) => {
         mag: magData,
         accel: accelhData,
       }).then((res) => {
-        if (res.point) {
+        console.log("res", res);
+        if (res.value !== "Label_not_found") {
+          setCatch(true);
           setPosition({
-            x: points[res.point][0],
-            y: points[res.point][1],
-            outgoingAngle: res.outgoingAngle,
-            incomingAngle: res.incomingAngle,
+            x: points[res.value][0],
+            y: points[res.value][1],
+            outgoingAngle: Number(res.outgoingAngle),
+            incommingAngle: Number(res.incommingAngle),
           });
+        } else {
+          setCatch(false);
         }
         setAccelData(false);
         setBluetoothData(false);
@@ -158,6 +167,12 @@ const Scan = ({ setPosition }) => {
       color: "white",
       fontWeight: "bold",
     },
+    text: {
+      position: "absolute",
+      top: 20,
+      left: 20,
+      fontWeight: "bold",
+    },
   });
 
   const scanHandler = () => {
@@ -170,6 +185,9 @@ const Scan = ({ setPosition }) => {
 
   return (
     <>
+      <Text style={styles.text}>
+        {isCatch ? "측정 완료" : "측정 진행 중.."}
+      </Text>
       <TouchableOpacity style={styles.button} onPress={scanHandler}>
         <Text style={styles.buttonText}>
           {isScanning ? "SCAN OFF" : "SCAN ON"}
