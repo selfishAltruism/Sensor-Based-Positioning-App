@@ -25,16 +25,19 @@ export const points = {
 
 export const resizingX = (x) => {
   const data = Number(x);
+
+  console.log(data * 2.3846 + 172);
   return data * 2.3846 + 172;
 };
 
 export const resizingY = (y) => {
   const data = Number(y);
-  return data * -3.6385 + 603;
+  return data * -3.6385 + 583;
 };
 
 const angles = [90, 45, 0, 315, 270, 225, 180, 135];
 
 export const resizingAngle = (angle) => {
-  return angles[Number(angle)];
+  console.log(angles[Number(angle) - 1]);
+  return angles[Number(angle) - 1];
 };

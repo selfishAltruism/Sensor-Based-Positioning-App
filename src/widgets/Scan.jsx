@@ -26,28 +26,51 @@ const Scan = ({ setPosition }) => {
     });
 
     setPosition({
-      x: resizingX(res.x), // 원 중심 X 좌표
-      y: resizingY(res.y), // 원 중심 Y 좌표
+      x: resizingX(res.coordination[0]), // 원 중심 X 좌표
+      y: resizingY(res.coordination[1]), // 원 중심 Y 좌표
+      outgoingAngle: resizingAngle(res.direction),
     });
 
     setLabel(res.label);
 
-    devices.current = [];
     console.log("[블루투스 값 전송 완료]");
   };
 
-  const stopScanning = () => {
-    initializeData();
+  const stopScanning = async () => {
+    await initializeData();
 
-    console.log("[스캔 종료]");
-    bleManager.stopDeviceScan();
+    console.log("[스캔 종료 & INTERVAL 실행]");
 
-    //다시 시작
-    startChecking();
+    const interval = setInterval(async () => {
+      const res = await checkState();
+
+      setPosition({
+        x: resizingX(res.coordination[0]),
+        y: resizingY(res.coordination[1]),
+        outgoingAngle: resizingAngle(res.direction),
+      });
+
+      setLabel(res.label);
+
+      if (res.request) {
+        clearInterval(interval);
+        startScanning();
+      }
+    }, INTERVAL);
+
+    setScanInterval(interval);
   };
 
   const startScanning = () => {
     console.log("[스캔 시작]");
+    devices.current = [];
+
+    setTimeout(() => {
+      stopScanning();
+    }, 5000);
+  };
+
+  const startChecking = () => {
     bleManager.startDeviceScan([], null, (error, device) => {
       if (error) console.log(error);
       if (device && !devices.current.some((d) => d.id === device.id)) {
@@ -59,24 +82,19 @@ const Scan = ({ setPosition }) => {
       }
     });
 
-    setTimeout(() => {
-      stopScanning();
-    }, 5000);
-  };
-
-  const startChecking = () => {
     const interval = setInterval(async () => {
       const res = await checkState();
 
       setPosition({
-        x: resizingX(res.x),
-        y: resizingY(res.y),
+        x: resizingX(res.coordination[0]),
+        y: resizingY(res.coordination[1]),
+        outgoingAngle: resizingAngle(res.direction),
       });
 
       setLabel(res.label);
 
       if (res.request) {
-        clearInterval(scanInterval);
+        clearInterval(interval);
         startScanning();
       }
     }, INTERVAL);
@@ -86,6 +104,7 @@ const Scan = ({ setPosition }) => {
   };
 
   const stopChecking = () => {
+    bleManager.stopDeviceScan();
     clearInterval(scanInterval);
     setIsScanning(false);
   };
@@ -126,7 +145,7 @@ const Scan = ({ setPosition }) => {
 
   return (
     <>
-      <Text style={styles.text}>{label || "NaN"}</Text>
+      <Text style={styles.text}>{label ? label : "NaN"}</Text>
       <TouchableOpacity style={styles.button} onPress={checkingHandler}>
         <Text style={styles.buttonText}>
           {isScanning ? "SCAN OFF" : "SCAN ON"}

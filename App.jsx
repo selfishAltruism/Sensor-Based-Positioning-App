@@ -10,7 +10,7 @@ const App = () => {
   const [position, setPosition] = useState({
     x: resizingX("0"), // 원 중심 X 좌표
     y: resizingY("0"), // 원 중심 Y 좌표
-    outgoingAngle: resizingAngle(0), // 나가는 방향 각도 (0도)
+    outgoingAngle: resizingAngle(1), // 나가는 방향 각도 (0도)
   });
 
   const scale = useRef(new Animated.Value(1)).current; // 초기 크기 1

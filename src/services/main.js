@@ -1,10 +1,10 @@
 export const postData = async (data) => {
-  const req = [data.bluetooth];
+  const req = [data];
 
   console.log(req);
 
   try {
-    const response = await fetch("127.0.0.1:5000/post", {
+    const response = await fetch("http://192.168.203.44:5000/post", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -29,9 +29,7 @@ export const postData = async (data) => {
 
 export const checkState = async () => {
   try {
-    const response = await fetch("127.0.0.1:5000/get", {
-      method: "GET",
-    });
+    const response = await fetch("http://192.168.203.44:5000/get");
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -54,7 +52,7 @@ export const putDirection = async (data) => {
       direction: data,
     };
 
-    const response = await fetch("127.0.0.1:5000/put", {
+    const response = await fetch("http://192.168.203.44:5000/put", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
