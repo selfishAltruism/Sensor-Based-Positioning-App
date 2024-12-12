@@ -4,9 +4,10 @@ import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
 import { BleManager } from "react-native-ble-plx";
 
 import { postData, checkState } from "../services/main";
-import { resizingX, resizingY } from "../utils/points";
+import { resizingX, resizingY, resizingAngle } from "../utils/points";
+import EightDirectionButton from "./EightDirectionButton";
 
-const INTERVER = 1000;
+const INTERVAL = 1000;
 const bleManager = new BleManager();
 
 const Scan = ({ setPosition }) => {
@@ -68,17 +69,17 @@ const Scan = ({ setPosition }) => {
       const res = await checkState();
 
       setPosition({
-        x: resizingX(res.x), // 원 중심 X 좌표
-        y: resizingY(res.y), // 원 중심 Y 좌표
+        x: resizingX(res.x),
+        y: resizingY(res.y),
       });
 
       setLabel(res.label);
 
-      if (res.label === "" && stop) {
+      if (res.request) {
         clearInterval(scanInterval);
         startScanning();
       }
-    }, INTERVER);
+    }, INTERVAL);
 
     setScanInterval(interval);
     setIsScanning(true);
@@ -90,7 +91,7 @@ const Scan = ({ setPosition }) => {
   };
 
   const checkingHandler = () => {
-    if (isScanning) {
+    if (!isScanning) {
       startChecking();
     } else {
       stopChecking();
@@ -112,21 +113,26 @@ const Scan = ({ setPosition }) => {
     },
     text: {
       position: "absolute",
-      top: 20,
-      left: 20,
-      fontSize: 20,
+      top: 68,
+      right: 20,
+      width: 80,
+      textAlign: "center",
+      borderRadius: 5,
+      backgroundColor: "white",
+      fontSize: 18,
       fontWeight: "bold",
     },
   });
 
   return (
     <>
-      <Text style={styles.text}>{label}</Text>
+      <Text style={styles.text}>{label || "NaN"}</Text>
       <TouchableOpacity style={styles.button} onPress={checkingHandler}>
         <Text style={styles.buttonText}>
           {isScanning ? "SCAN OFF" : "SCAN ON"}
         </Text>
       </TouchableOpacity>
+      <EightDirectionButton />
     </>
   );
 };
