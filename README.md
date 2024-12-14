@@ -19,6 +19,7 @@
     2. Bluetooth 측정 & 방향 조율 기능 추가 버전 **(v2 branch)**
         - Magnetometer / Gyroscope / Accelerometer 추가적인 App을 활용
 - 최종적으로 서버 간의 지연 시간을 고려하여 후자를 선택
+- App 이름과 로고는 본 프로젝트와 무관
 
 ## App Flow
 
